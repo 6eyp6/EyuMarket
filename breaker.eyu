@@ -1,5 +1,5 @@
-# EYU-BREAKER: RETRO EDITION (KEYBOARD CONTROL)
-# ESP32-S3 VGA EyuScript 3.0 Test Oyunu
+# EYU-BREAKER: NO-ARRAY FIX EDITION
+# ESP32-S3 VGA EyuScript 3.0
 
 SET score = 0
 SET lives = 3
@@ -15,12 +15,7 @@ SET paddle_y = {sh - 30}
 SET paddle_speed = 6
 SET game_active = 1
 
-ARRAY blocks 20
-FOR i=0 TO 19
-  ASET blocks i 1
-NEXT i
-
-LOG "=== EYU-BREAKER KEYBOARD EDITION STARTED ==="
+LOG "=== EYU-BREAKER RUNNING WITHOUT ARRAYS ==="
 
 WHILE {game_active} == 1
   CLEAR
@@ -88,6 +83,58 @@ WHILE {game_active} == 1
         SET ball_x = 200
         SET ball_y = 150
         SET ball_dy = 3
+        WAIT 500
+     ENDIF
+  ENDIF
+  
+  IF {ball_y >= paddle_y - 6}
+     IF {ball_y <= paddle_y}
+        IF {ball_x >= paddle_x}
+           IF {ball_x <= paddle_x + paddle_w}
+              SET ball_dy = {0 - ball_dy}
+              SET ball_y = {paddle_y - 6}
+              BEEP 1000 20
+           ENDIF
+        ENDIF
+     ENDIF
+  ENDIF
+
+  # Topu Ciz
+  SETCOLOR 255 255 255
+  FILLCIRCLE {ball_x} {ball_y} 4
+  
+  # UI
+  SETTEXT 1 0
+  SETCOLOR 200 255 200
+  SETCURSOR 10 5
+  PRINT "SCORE: "
+  PRINT {score}
+  SETCOLOR 255 100 100
+  SETCURSOR {sw - 100} 5
+  PRINT "LIVES: "
+  PRINT {lives}
+  
+  SHOW
+  WAIT 10
+WEND
+
+CLEAR
+SETCOLOR 0 0 0
+FILLRECT 0 0 {sw} {sh}
+
+SETCOLOR 255 0 0
+SETTEXT 2 0
+SETCURSOR {sw / 6} {sh / 3}
+PRINTLN "!!! GAME OVER !!!"
+
+SHOW
+WAIT 500
+SET space_pressed = 0
+WHILE {space_pressed} == 0
+  ISKEYDOWN 44 space_pressed
+  WAIT 10
+WEND
+EXIT        SET ball_dy = 3
         WAIT 500
      ENDIF
   ENDIF
