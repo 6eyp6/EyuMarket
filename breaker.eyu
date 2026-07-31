@@ -1,6 +1,3 @@
-# EYU-BREAKER: NO-ARRAY FIX EDITION
-# ESP32-S3 VGA EyuScript 3.0
-
 SET score = 0
 SET lives = 3
 SET ball_x = 200
@@ -15,7 +12,7 @@ SET paddle_y = {sh - 30}
 SET paddle_speed = 6
 SET game_active = 1
 
-LOG "=== EYU-BREAKER RUNNING WITHOUT ARRAYS ==="
+SET block_mask = 1048575
 
 WHILE {game_active} == 1
   CLEAR
@@ -64,6 +61,137 @@ WHILE {game_active} == 1
   ENDIF
   IF {ball_x} > {sw - 10}
      SET ball_dx = {0 - ball_dx}
+     SET ball_x = {sw - 10}
+     BEEP 800 15
+  ENDIF
+  
+  IF {ball_y} < 30
+     SET ball_dy = {0 - ball_dy}
+     SET ball_y = 30
+     BEEP 800 15
+  ENDIF
+  
+  IF {ball_y} > {sh - 15}
+     SET lives = {lives - 1}
+     BEEP 150 120
+     IF {lives} == 0
+        SET game_active = 0
+     ELSE
+        SET ball_x = 200
+        SET ball_y = 150
+        SET ball_dy = 3
+        WAIT 500
+     ENDIF
+  ENDIF
+  
+  IF {ball_y >= paddle_y - 6}
+     IF {ball_y <= paddle_y}
+        IF {ball_x >= paddle_x}
+           IF {ball_x <= paddle_x + paddle_w}
+              SET ball_dy = {0 - ball_dy}
+              SET ball_y = {paddle_y - 6}
+              BEEP 1000 20
+           ENDIF
+        ENDIF
+     ENDIF
+  ENDIF
+
+  SET active_blocks = 0
+  FOR i=0 TO 19
+    SET mask = {1 << i}
+    SET is_active = {block_mask & mask}
+    
+    IF {is_active} != 0
+       SET active_blocks = {active_blocks + 1}
+       SET col = {i % 5}
+       SET row = {i / 5}
+       SET bx = {col * 68 + 32}
+       SET by = {row * 15 + 45}
+       
+       IF {row} == 0
+          SETCOLOR 255 50 50
+       ELSEIF {row} == 1
+          SETCOLOR 255 150 0
+       ELSEIF {row} == 2
+          SETCOLOR 255 255 0
+       ELSE
+          SETCOLOR 0 200 255
+       ENDIF
+       
+       FILLRECT {bx} {by} 60 10
+       SETCOLOR 255 255 255
+       RECT {bx} {by} 60 10
+       
+       IF {ball_x >= bx}
+          IF {ball_x <= bx + 60}
+             IF {ball_y >= by}
+                IF {ball_y <= by + 10}
+                   SET block_mask = {block_mask ^ mask}
+                   SET ball_dy = {0 - ball_dy}
+                   SET score = {score + 20}
+                   BEEP 1200 20
+                ENDIF
+             ENDIF
+          ENDIF
+       ENDIF
+    ENDIF
+  NEXT i
+  
+  IF {active_blocks} == 0
+     SET game_active = 2
+  ENDIF
+
+  SETCOLOR 255 255 255
+  FILLCIRCLE {ball_x} {ball_y} 4
+  
+  SETTEXT 1 0
+  SETCOLOR 200 255 200
+  SETCURSOR 10 5
+  PRINT "SCORE: "
+  PRINT {score}
+  SETCOLOR 255 100 100
+  SETCURSOR {sw - 100} 5
+  PRINT "LIVES: "
+  PRINT {lives}
+  
+  SHOW
+  WAIT 10
+WEND
+
+CLEAR
+SETCOLOR 0 0 0
+FILLRECT 0 0 {sw} {sh}
+
+IF {game_active} == 2
+   SETCOLOR 0 255 100
+   SETTEXT 2 0
+   SETCURSOR {sw / 5} {sh / 3}
+   PRINTLN "!!! VICTORY !!!"
+   BEEP 1500 100
+   BEEP 2000 200
+ELSE
+   SETCOLOR 255 0 0
+   SETTEXT 2 0
+   SETCURSOR {sw / 6} {sh / 3}
+   PRINTLN "!!! GAME OVER !!!"
+ENDIF
+
+SETTEXT 1 0
+SETCOLOR 255 255 255
+SETCURSOR {sw / 3} {sh / 2}
+PRINT "FINAL SCORE: "
+PRINTLN {score}
+SETCURSOR {sw / 3} {sh / 2 + 20}
+PRINTLN "Press SPACE to Exit..."
+SHOW
+
+WAIT 500
+SET space_pressed = 0
+WHILE {space_pressed} == 0
+  ISKEYDOWN 44 space_pressed
+  WAIT 10
+WEND
+EXIT     SET ball_dx = {0 - ball_dx}
      SET ball_x = {sw - 10}
      BEEP 800 15
   ENDIF
