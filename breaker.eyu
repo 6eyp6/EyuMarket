@@ -3,7 +3,7 @@
 
 # API Yapilandirmasi
 SET api_url = "https://api.groq.com/openai/v1/chat/completions"
-SET api_key = "Bearer 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"
+SET api_key = "Bearer api_key"
 
 # Ekran Parametreleri
 SET bg_color = 15
