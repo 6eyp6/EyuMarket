@@ -1,97 +1,47 @@
-# GROQ AI CHATBOT - EYUSCRIPT 3.0 TURBO
-# ESP32-S3 Wi-Fi & HTTPS JSON API TEST
+REM ================================
+REM  EyuScript - Buyuk Yazili Kronometre
+REM ================================
 
-# API Yapilandirmasi
-SET api_url = "https://api.groq.com/openai/v1/chat/completions"
-SET api_key = "Bearer api_key"
+CLEAR 0
+SETCURSOR 100 20
+PRINTLN "KRONOMETRE"
+SHOW
 
-# Ekran Parametreleri
-SET bg_color = 15
-SET txt_color = 255
-SET input_prompt = "Soru Sor (Klavye): "
-SET user_input = ""
-SET ai_response = "Groq AI Hazir. Bir seyler yazin..."
-SET system_prompt = "You are a helpful assistant embedded in EyudiOS ESP32 system."
+SET toplamSaniye 0
 
-LOG "=== GROQ AI CHATBOT STARTED ==="
+:tik
+  REM Dakika ve saniyeyi hesapla
+  SET dk toplamSaniye
+  DIV dk 60
 
-# Ekrani Ilk Kez Hazirla
-CLEAR
-SETCOLOR 0 40 80
-FILLRECT 0 0 {sw} 30
-SETCOLOR 255 255 255
-SETTEXT 1 0
-SETCURSOR 10 8
-PRINT "EyudiOS 3.0 - Groq AI Terminal (Llama-3)"
+  SET sn toplamSaniye
+  MOD sn 60
 
-# Ana Etkilesim Dongusu
-:chat_loop
-  # Arayuz Cizimi
-  SETCOLOR 20 20 25
-  FILLRECT 0 31 {sw} {sh - 31}
-  
-  # Cevap Kutusu (AI Output)
-  SETCOLOR 40 45 60
-  FILLRECT 10 40 {sw - 20} {sh - 90}
-  SETCOLOR 0 255 200
-  RECT 10 40 {sw - 20} {sh - 90}
-  
-  SETCURSOR 20 50
-  SETCOLOR 255 255 255
-  PRINTLN {ai_response}
+  REM Eski yaziyi temizle (buyuk kutu)
+  RECT 100 100 200 80 0
 
-  # Input Kutusu (Kullanici Giri)
-  SETCOLOR 10 10 15
-  FILLRECT 10 {sh - 40} {sw - 20} 30
-  SETCOLOR 255 200 0
-  RECT 10 {sh - 40} {sw - 20} 30
-  
-  SETCURSOR 20 {sh - 30}
-  SETCOLOR 255 255 255
-  PRINT {input_prompt}
+  REM "Kalin" gorunum icin ayni metni ust uste, hafif kaydirarak yaz
+  SETCURSOR 120 120
+  PRINT dk
+  PRINT ":"
+  PRINT sn
+
+  SETCURSOR 121 120
+  PRINT dk
+  PRINT ":"
+  PRINT sn
+
+  SETCURSOR 120 121
+  PRINT dk
+  PRINT ":"
+  PRINT sn
+
+  REM Cerceve
+  RECTOUT 90 95 220 90 2047
+
   SHOW
 
-  # Klavyeden Girdi Alma (Enter / Key Code 40 beklenir)
-  LASTKEYDOWN key_code
-  IF {key_code} == 40
-     SET ai_response = "Groq'a Baglaniliyor... Bekleyin..."
-     
-     # Arayuzu Guncelle
-     CLEAR
-     SETCOLOR 0 40 80
-     FILLRECT 0 0 {sw} 30
-     SETCOLOR 255 255 255
-     SETCURSOR 10 8
-     PRINT "EyudiOS 3.0 - Groq AI Terminal (Llama-3)"
-     SETCOLOR 40 45 60
-     FILLRECT 10 40 {sw - 20} {sh - 90}
-     SETCURSOR 20 50
-     PRINTLN {ai_response}
-     SHOW
+  WAIT 1000
+  ADD toplamSaniye 1
 
-     # JSON Payload Oluşturma
-     SET json_payload = "{\"model\":\"llama-3.3-70b-versatile\",\"messages\":[{\"role\":\"system\",\"content\":\""
-     SET json_payload = {json_payload + system_prompt}
-     SET json_payload = {json_payload + "\"},{\"role\":\"user\",\"content\":\""}
-     SET json_payload = {json_payload + user_input}
-     SET json_payload = {json_payload + "\"}]}"
-
-     # HTTP POST Istegi
-     HTTPPOST {api_url} {json_payload}
-     
-     # HTTP Sonucu Analizi
-     JSONPARSE
-     JSONGET "choices[0].message.content" ai_response
-     
-     # Cevap Boşsa Hata Ver
-     IF {ai_response} == ""
-        SET ai_response = "HATA: Groq API Baglantisi Basarisiz!"
-     ENDIF
-
-     WAIT 500
-  ENDIF
-
-  WAIT 50
-  GOTO :chat_loop
-
-EXIT
+GOTO tik
